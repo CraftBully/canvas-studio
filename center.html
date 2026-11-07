@@ -83,9 +83,9 @@ const SIZE_GROUPS=[['Canvas sizes',['8 × 10 in','10 × 10 in','12 × 16 in','16
 const SIZES=SIZE_GROUPS.flatMap(g=>g[1]);
 const sizeOptions=sel=>{ const known=SIZES.includes(sel); return (sel&&!known?'<option selected>'+esc(sel)+'</option>':'')+SIZE_GROUPS.map(g=>'<optgroup label="'+g[0]+'">'+g[1].map(s=>'<option '+(s===sel?'selected':'')+'>'+esc(s)+'</option>').join('')+'</optgroup>').join(''); };
 const WM=new Image(); WM.src='watermark.png';
-const CB_EMAIL_KEY='hluCenter.cbEmail'; const cbEmail=()=>{ try{ return localStorage.getItem(CB_EMAIL_KEY)||'orders@yourbusiness.com'; }catch(e){ return 'orders@yourbusiness.com'; } };
+const CB_EMAIL_KEY='hluCenter.cbEmail'; const cbEmail=()=>{ try{ return localStorage.getItem(CB_EMAIL_KEY)||'artbydiamonddander@craftbully.com'; }catch(e){ return 'artbydiamonddander@craftbully.com'; } };
 const FROM_KEY='hluCenter.from'; // Put your own sender addresses here (the first one must be the Gmail address you set as GMAIL_USER; the second is optional and must match the ALT_FROM_EMAIL secret).
-const FROM_OPTS=[['orders.yourbusiness@gmail.com','orders.yourbusiness@gmail.com'],['hello@yourbusiness.com','hello@yourbusiness.com']];
+const FROM_OPTS=[['artbydiamonddander@craftbully.com','artbydiamonddander@craftbully.com']];
 const sendFrom=()=>{ try{ return localStorage.getItem(FROM_KEY)||FROM_OPTS[0][0]; }catch(e){ return FROM_OPTS[0][0]; } };
 const NEEDS_ACTION={order_received:'Start design',design_in_preparation:'In progress',revision_in_progress:'Revise',design_approved:'Prepare production files'};
 const actionOf=o=>o.status==='completed'?null:(o.files_ready_at?'Ready to pull':(NEEDS_ACTION[o.status]||null));
@@ -261,8 +261,8 @@ const designStatus=d=>d.approved_at?'Approved · Option '+(d.approved_option?'B'
 function designHtml(d,i,o,revs){
   const p='d'+i+'_', dr=revs.filter(r=>r.design_id===d.id||(!r.design_id&&i===0)), open=dr.filter(r=>!r.resolved_at).length, many=DETAIL.designs.length>1;
   return '<details class="card dcard" open><summary class="dsum"><b>'+esc(d.name)+'</b> <span class="tag '+(d.approved_at?'done':(d.preview_a&&d.preview_b?'':'act'))+'">'+esc(designStatus(d))+'</span></summary>'
-   +'<p class="small" style="margin:8px 0"><b>Order spec:</b> '+esc(d.size||o.size||'size not set')+' · '+esc(d.drill_shape||o.drill_shape||'drill shape not set')+' drills · '+esc(d.kit||'kit not set')+'. The shopping list must match this.</p>'+'<div class="grid2" style="margin-top:10px"><div class="field"><label>Design name</label><input id="'+p+'name" value="'+esc(d.name)+'"></div><div class="field"><label>Size for this design</label><select id="'+p+'size"><option value="">Same as the order ('+esc(o.size||'not set')+')</option>'+sizeOptions(d.size||'')+'</select></div></div>'
-   +'<h3>Customer’s source image</h3><div id="'+p+'src">'+(d.source_path?'<span class="muted small">Loading…</span>':'<div class="empty">No source image uploaded</div>')+'</div><div class="field"><label>Upload / replace source image</label><input type="file" id="'+p+'srcFile" accept="image/*"></div>'
+   +'<p class="small" style="margin:8px 0"><b>Order spec:</b> '+esc(d.size||o.size||'size not set')+' · '+esc(d.drill_shape||o.drill_shape||'drill shape not set')+' drills · '+esc(d.kit||'kit not set')+'. The shopping list must match this.</p>'+(d.approved_at?'':'<div class="flex" style="margin:0 0 10px"><button class="secondary" data-skip="'+i+'">Skip previews (VIP upgrade): go to production files</button></div>')+'<div class="grid2" style="margin-top:10px"><div class="field"><label>Design name</label><input id="'+p+'name" value="'+esc(d.name)+'"></div><div class="field"><label>Size for this design</label><select id="'+p+'size"><option value="">Same as the order ('+esc(o.size||'not set')+')</option>'+sizeOptions(d.size||'')+'</select></div></div>'
+   +'<h3>Customer’s source image</h3><div id="'+p+'src">'+(d.source_path?'<span class="muted small">Loading…</span>':'<div class="empty">No source image uploaded</div>')+'</div><div class="field"><label>Upload / replace source image</label><input type="file" id="'+p+'srcFile" ></div>'
    +'<h3>Proof builder · review previews</h3><p class="muted small">Upload the diamond art preview (or use the customer’s image), set the canvas details and watermark, then save. Option A is the original conversion; Option B is the enhanced one.</p><div class="grid2">'+builderHtml(d,0,o,p)+builderHtml(d,1,o,p)+'</div>'
    +'<h3>Revision requests ('+d.revisions_used+' of 2 used)</h3>'+(dr.length?dr.map(r=>'<div class="ev"><b>Round '+r.round+'</b>'+(r.resolved_at?' <span class="tag done">resolved</span>':' <span class="tag act">open</span>')+'<small>'+esc(fmt(r.created_at))+'</small><div style="white-space:pre-wrap;margin-top:4px">'+esc(r.request_text)+'</div>'+(r.resolved_at?'':'<button class="secondary" style="margin-top:6px;padding:6px 10px" data-res="'+r.id+'">Mark resolved</button>')+'</div>').join(''):'<p class="muted small">No revisions requested.</p>')+(open?'<p class="small muted">Upload the updated previews above, then press Publish for review below.</p>':'')
    +productionHtml(d,i)
@@ -299,7 +299,7 @@ function builderHtml(d,n,o,p){
    +'<canvas class="bcv" id="'+q+'_cv" width="10" height="10" hidden></canvas>'
    +'<div id="'+q+'_ph" class="empty" style="min-height:90px">'+(url?'':'No preview yet. Upload an image below.')+'</div>'
    +(url?'<div class="small muted" style="margin:6px 0 2px">Currently saved for the customer:</div><img class="thumb" id="'+q+'_saved" src="'+esc(pubUrl(url))+'" alt="" style="max-height:200px">':'')
-   +'<div class="flex" style="margin:8px 0"><label class="btn secondary" style="margin:0;cursor:pointer">Upload image<input type="file" id="'+q+'_file" accept="image/png,image/jpeg,image/webp" hidden></label>'+(d.source_path?'<button class="secondary" id="'+q+'_src" type="button">Use customer’s image</button>':'')+'</div>'
+   +'<div class="flex" style="margin:8px 0"><label class="btn secondary" style="margin:0;cursor:pointer">Upload image<input type="file" id="'+q+'_file"  hidden></label>'+(d.source_path?'<button class="secondary" id="'+q+'_src" type="button">Use customer’s image</button>':'')+'</div>'
    +'<div class="grid2"><div class="field"><label>Design label</label><input id="'+q+'_label" value="'+val('label',d.name+(n?' · Option B':' · Option A'))+'"></div><div class="field"><label>Fit mode</label><select id="'+q+'_fit"><option value="contain">Fit full image</option><option value="cover">Fill and crop</option></select></div>'
    +'<div class="field"><label>Canvas width</label><input id="'+q+'_w" type="number" step="0.01" value="'+val('w',sz.w)+'"></div><div class="field"><label>Canvas height</label><input id="'+q+'_h" type="number" step="0.01" value="'+val('h',sz.h)+'"></div>'
    +'<div class="field"><label>Unit</label><select id="'+q+'_unit"><option '+((m.unit||sz.unit)==='cm'?'':'selected')+'>in</option><option '+((m.unit||sz.unit)==='cm'?'selected':'')+'>cm</option></select></div><div class="field"><label>Drill count</label><input id="'+q+'_drills" placeholder="Ex: 32,000" value="'+val('drills')+'"></div>'
@@ -468,7 +468,7 @@ setInterval(()=>{ try{ if(!document.hidden&&TAB==='orders'){ if(builderDirty()||
 async function refreshAll(){ await loadOrders(); drawList(); if(SEL) await openOrder(SEL); }
 // ---------- new order ----------
 function renderNew(){
-  $('pane').innerHTML='<div class="card" style="max-width:720px"><h2>New order</h2><p class="muted small">Enter the CraftBully order number, the customer’s details and the size they bought. After saving you’ll get their private link.</p><div class="grid2"><div class="field"><label>CraftBully order number *</label><input id="nNo" placeholder="e.g. CB-1001"></div><div class="field"><label>Customer name</label><input id="nName"></div><div class="field"><label>Customer email</label><input id="nEmail" type="email"></div><div class="field"><label>Canvas size</label><select id="nSize">'+sizeOptions('')+'</select></div><div class="field"><label>Drill shape</label><select id="nShape"><option>Round</option><option>Square</option></select></div><div class="field"><label>Shopify order ID (optional, for later)</label><input id="nShop"></div></div><div class="field"><label>Customer’s uploaded image (for Design 1; add more designs after saving)</label><input type="file" id="nSrc" accept="image/*"></div><button id="nGo">Create order</button><p class="small muted" id="nMsg"></p></div>';
+  $('pane').innerHTML='<div class="card" style="max-width:720px"><h2>New order</h2><p class="muted small">Enter the CraftBully order number, the customer’s details and the size they bought. After saving you’ll get their private link.</p><div class="grid2"><div class="field"><label>CraftBully order number *</label><input id="nNo" placeholder="e.g. CB-1001"></div><div class="field"><label>Customer name</label><input id="nName"></div><div class="field"><label>Customer email</label><input id="nEmail" type="email"></div><div class="field"><label>Canvas size</label><select id="nSize">'+sizeOptions('')+'</select></div><div class="field"><label>Drill shape</label><select id="nShape"><option>Round</option><option>Square</option></select></div><div class="field"><label>Shopify order ID (optional, for later)</label><input id="nShop"></div></div><div class="field"><label>Customer’s uploaded image (for Design 1; add more designs after saving)</label><input type="file" id="nSrc" ></div><button id="nGo">Create order</button><p class="small muted" id="nMsg"></p></div>';
   $('nGo').onclick=async()=>{
     const no=$('nNo').value.trim(); if(!no){ $('nMsg').textContent='Enter the order number.'; return; }
     $('nGo').disabled=true; $('nMsg').textContent='Saving…';
@@ -491,4 +491,19 @@ function renderTeam(){
 }
 if('serviceWorker' in navigator&&location.protocol==='https:') navigator.serviceWorker.register('sw.js').catch(()=>{});
 boot();
+document.addEventListener('click',async e=>{
+  const b=e.target.closest&&e.target.closest('[data-skip]'); if(!b||!DETAIL) return;
+  const d=DETAIL.designs[+b.dataset.skip]; if(!d||d.approved_at) return;
+  if(!confirm('Skip the previews for '+d.name+' and go straight to production files? Use this only for VIP size upgrades. The customer will not review this design.')) return;
+  try{
+    const now=new Date().toISOString(), o=DETAIL.o;
+    await api('PATCH','/rest/v1/hlu_designs?id=eq.'+d.id,{json:{approved_at:now,approved_option:null,approved_preview_path:null}});
+    await api('POST','/rest/v1/hlu_events',{json:{order_id:o.id,actor:'staff',customer_visible:false,message:'Previews skipped for '+d.name+' (VIP upgrade): sent straight to production files'}});
+    const left=DETAIL.designs.filter(x=>x.id!==d.id&&!x.approved_at).length;
+    if(!left) await api('PATCH','/rest/v1/hlu_orders?id=eq.'+o.id,{json:{approved_at:now,status:'design_approved'}});
+    toast('Previews skipped for '+d.name);
+    await refreshAll();
+  }catch(err){ toast(err.message); }
+});
+
 </script></body></html>
